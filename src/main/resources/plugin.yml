@@ -1,0 +1,3 @@
+name: Duels
+version: '${project.version}'
+main: me.fodded.duels.Main
