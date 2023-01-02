@@ -1,5 +1,6 @@
 package me.fodded.duels.listeners;
 
+import me.fodded.duels.manager.LobbyManager;
 import me.fodded.duels.manager.PlayerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,5 +13,7 @@ public class PlayerJoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         PlayerManager playerManager = PlayerManager.getPlayerManager(player);
+        playerManager.resetPlayer();
+        playerManager.teleport(LobbyManager.lobbyLocation);
     }
 }

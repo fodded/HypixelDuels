@@ -16,7 +16,7 @@ public class Database {
     private File file;
 
     public Database() {
-        this.file = new File("plugins/RankedSkywars/data.db");
+        this.file = new File("plugins/HypixelDuels/data.db");
         if (!file.exists()) {
             file.getParentFile().mkdirs();
             try {
@@ -43,7 +43,7 @@ public class Database {
         }
     }
 
-    public static void prepareStatement(String query) {
+    public void prepareStatement(String query) {
         ForkJoinPool.commonPool().submit(() -> {
             try {
                 PreparedStatement ps = Main.getPlugin().getConnection().prepareStatement(query);
@@ -55,7 +55,7 @@ public class Database {
         });
     }
 
-    public static Boolean tableExists(String tableName) throws SQLException {
+    public Boolean tableExists(String tableName) throws SQLException {
         String query = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "';";
         PreparedStatement preparedStatement = Main.getPlugin().getConnection().prepareStatement(query);
         ResultSet resultSet = preparedStatement.executeQuery();
