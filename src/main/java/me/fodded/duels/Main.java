@@ -12,7 +12,6 @@ import me.fodded.duels.listeners.WorldBasicListener;
 import me.fodded.duels.manager.LobbyManager;
 import me.fodded.duels.manager.PlayerManager;
 import me.fodded.duels.manager.game.GameManager;
-import me.fodded.duels.manager.game.GameMap;
 import me.fodded.duels.manager.tasks.KeepDayTask;
 import me.fodded.duels.utils.ChatUtil;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -75,7 +74,7 @@ public class Main extends JavaPlugin {
             return;
         }
         FileConfiguration config = ConfigHandler.getConfigHandler().getGameInfo();
-        for (String gameName : config.getConfigurationSection("games").getKeys(false)) {
+        for (String gameName : config.getConfigurationSection("").getKeys(false)) {
             new GameManager(gameName);
         }
 

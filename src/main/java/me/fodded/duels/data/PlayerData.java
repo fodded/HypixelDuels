@@ -14,13 +14,28 @@ import java.util.UUID;
 @Getter @Setter
 public class PlayerData {
 
-    private String name;
+    private String name, displayName, prefix;
     private UUID uuid;
     private Integer wins = 0, losses = 0, streak = 0;
 
     public PlayerData(Player player) {
         this.uuid = player.getUniqueId();
         this.name = player.getName();
+        this.displayName = player.getName();
+        this.prefix = "&7";
+    }
+
+    public void addStreak(Integer streak) {
+        if(getStreak() > 0 && streak < 0) { // streak: 1 and when you lose its gonna be -1
+            setStreak(-1);
+            return;
+        }
+        if(getStreak() < 0 && streak > 0) { // streak: -1 and you win its gonna be 1
+            setStreak(1);
+            return;
+        }
+
+        setStreak(getStreak()+streak); // if both statements above didn't work
     }
 
     public void loadData(PlayerData playerData) {

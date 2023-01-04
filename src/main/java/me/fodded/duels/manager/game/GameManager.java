@@ -4,15 +4,20 @@ import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import me.fodded.duels.Main;
 import me.fodded.duels.data.ConfigHandler;
+import me.fodded.duels.data.Messages;
+import me.fodded.duels.manager.LobbyManager;
 import me.fodded.duels.manager.PlayerManager;
 import me.fodded.duels.manager.tasks.GameGoingTask;
+import me.fodded.duels.manager.tasks.UpdateScoreboardTask;
 import me.fodded.duels.utils.BukkitUtils;
 import me.fodded.duels.utils.ChatUtil;
+import me.fodded.duels.utils.TitleUtils;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,7 +59,7 @@ public class GameManager {
         GameManager.games.add(this);
     }
 
-    private GameGoingTask gameGoingTask;
+    public GameGoingTask gameGoingTask;
 
     public void switchGameState(GameState gameState) {
         this.gameState = gameState;
@@ -65,12 +70,27 @@ public class GameManager {
                 break;
             case ACTIVE:
                 for(int i = 0; i < players.size(); i++) {
+                    UpdateScoreboardTask.createHealthTab(players.get(i).getPlayer());
                     players.get(i).teleport(spawnPoints.get(i));
                     giveKit(players.get(i));
                 }
                 break;
             case END:
                 this.gameGoingTask.cancel();
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        for(PlayerManager playerManager : getPlayers()) {
+                            leaveGame(playerManager);
+                            playerManager.resetPlayer();
+                            playerManager.teleport(LobbyManager.lobbyLocation);
+                        }
+                        gameMap.unload(true);
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), () -> {
+                            new GameManager(name);
+                        }, 5);
+                    }
+                }.runTaskLater(Main.getPlugin(), 20 * 10);
                 break;
         }
     }
@@ -93,17 +113,58 @@ public class GameManager {
         playerManager.getPlayer().setGameMode(GameMode.SURVIVAL);
         playerManager.teleport(spawnPoints.get(players.size()-1));
 
-        sendMessage(playerManager.getPlayerData().getName() + " &ehas joined (&b" + players.size() + "&e/&b2&e)");
+        sendMessage(playerManager.getPlayerData().getPrefix() + playerManager.getPlayerData().getDisplayName() + " &ehas joined (&b" + players.size() + "&e/&b2&e)");
 
         if(players.size() >= 2) {
             switchGameState(GameState.STARTING);
         }
     }
     public void leaveGame(PlayerManager playerManager) {
-        players.remove(playerManager);
+        PlayerManager.currentGames.put(playerManager, null);
+
+        if(players.size() == 1 && !getGameState().equals(GameState.END)) {
+            killPlayer(playerManager, null);
+        }
     }
 
-    protected void sendMessage(String message) {
+    public void killPlayer(PlayerManager playerManager, Player killer) {
+        String textToOutput = playerManager.getPlayerData().getPrefix() + playerManager.getPlayerData().getDisplayName() + " &ewas killed by ";
+        if(killer == null) {
+            textToOutput = playerManager.getPlayerData().getPrefix() + playerManager.getPlayerData().getDisplayName() + " &edied.";
+        } else {
+            PlayerManager killerManager = PlayerManager.getPlayerManager(killer);
+            killerManager.getPlayerData().setWins(killerManager.getPlayerData().getWins()+1);
+            killerManager.getPlayerData().addStreak(1);
+            textToOutput += killerManager.getPlayerData().getDisplayName();
+        }
+
+        sendMessage(textToOutput);
+        playerManager.getPlayerData().setLosses(playerManager.getPlayerData().getLosses()-1);
+        playerManager.getPlayerData().addStreak(-1);
+
+        sendTitles(playerManager);
+    }
+
+    public void sendTitles(PlayerManager loser) {
+        PlayerManager winner = null;
+        for(PlayerManager playerManager : getPlayers()) {
+            if(!playerManager.getPlayer().getUniqueId().equals(loser.getPlayer().getUniqueId())) {
+                winner = playerManager;
+                break;
+            }
+        }
+
+        TitleUtils.sendTitle(loser.getPlayer(), Messages.titleUpLose, Messages.titleDownLose.replace("{player}", winner.getPlayerData().getPrefix() + winner.getPlayerData().getDisplayName()), 0, 60, 20);
+        TitleUtils.sendTitle(winner.getPlayer(), Messages.titleUpWin, Messages.titleDownWin.replace("{player}",winner.getPlayerData().getPrefix() + winner.getPlayerData().getDisplayName()), 0, 60, 20);
+    }
+
+    public void switchToSpectator(PlayerManager playerManager) {
+        playerManager.getPlayer().setGameMode(GameMode.SPECTATOR);
+        playerManager.getPlayer().spigot().respawn();
+        playerManager.teleport(spawnPoints.get(0));
+    }
+
+    public void sendMessage(String message) {
         for(PlayerManager playerManager : getPlayers()) {
             playerManager.getPlayer().sendMessage(ChatUtil.format(message));
         }

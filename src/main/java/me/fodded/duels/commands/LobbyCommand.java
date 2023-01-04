@@ -3,6 +3,7 @@ package me.fodded.duels.commands;
 import me.fodded.duels.Main;
 import me.fodded.duels.manager.LobbyManager;
 import me.fodded.duels.manager.PlayerManager;
+import me.fodded.duels.manager.game.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -31,7 +32,11 @@ public class LobbyCommand extends Command {
             Player player = (Player) sender;
 
             PlayerManager playerManager = PlayerManager.getPlayerManager(player);
-            PlayerManager.currentGames.put(playerManager, null);
+            GameManager gameManager = PlayerManager.currentGames.get(playerManager);
+            if(gameManager != null) {
+                gameManager.getPlayers().remove(playerManager);
+                gameManager.leaveGame(playerManager);
+            }
 
             playerManager.resetPlayer();
             playerManager.teleport(LobbyManager.lobbyLocation);

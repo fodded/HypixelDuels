@@ -1,7 +1,6 @@
 package me.fodded.duels.commands;
 
 import me.fodded.duels.Main;
-import me.fodded.duels.manager.LobbyManager;
 import me.fodded.duels.manager.PlayerManager;
 import me.fodded.duels.manager.game.GameManager;
 import org.bukkit.Bukkit;
@@ -9,8 +8,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
-
-import java.util.Arrays;
 
 public class PlayCommand extends Command {
 
@@ -30,6 +27,12 @@ public class PlayCommand extends Command {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             PlayerManager playerManager = PlayerManager.getPlayerManager(player);
+
+            GameManager currentGame = PlayerManager.currentGames.get(playerManager);
+            if(currentGame != null) {
+                currentGame.getPlayers().remove(playerManager);
+                currentGame.leaveGame(playerManager);
+            }
 
             GameManager gameManager = GameManager.getRandomGame(playerManager);
             gameManager.joinGame(playerManager);

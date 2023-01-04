@@ -33,6 +33,8 @@ public class Database {
                     "CREATE TABLE IF NOT EXISTS duels (" +
                             "uuid VARCHAR(36) NOT NULL," +
                             "name VARCHAR(32) NOT NULL," +
+                            "displayName VARCHAR(32) NOT NULL," +
+                            "prefix VARCHAR(32) NOT NULL," +
                             "wins INTEGER DEFAULT 0," +
                             "losses INTEGER DEFAULT 0," +
                             "streak INTEGER DEFAULT 0," +

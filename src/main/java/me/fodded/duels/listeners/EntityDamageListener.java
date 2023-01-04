@@ -1,10 +1,14 @@
 package me.fodded.duels.listeners;
 
 import me.fodded.duels.manager.LobbyManager;
+import me.fodded.duels.manager.PlayerManager;
+import me.fodded.duels.manager.game.GameManager;
+import me.fodded.duels.manager.game.GameState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 
 public class EntityDamageListener implements Listener {
 
@@ -20,4 +24,19 @@ public class EntityDamageListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        PlayerManager playerManager = PlayerManager.getPlayerManager(event.getEntity());
+        GameManager gameManager = PlayerManager.currentGames.get(playerManager);
+
+        if(gameManager == null) {
+            return;
+        }
+
+        event.setDeathMessage(null);
+
+        gameManager.switchToSpectator(playerManager);
+        gameManager.killPlayer(playerManager, event.getEntity().getKiller());
+        gameManager.switchGameState(GameState.END);
+    }
 }
