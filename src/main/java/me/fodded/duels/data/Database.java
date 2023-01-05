@@ -38,6 +38,8 @@ public class Database {
                             "wins INTEGER DEFAULT 0," +
                             "losses INTEGER DEFAULT 0," +
                             "streak INTEGER DEFAULT 0," +
+                            "players BOOLEAN NOT NULL," +
+                            "vanish BOOLEAN NOT NULL," +
                             "PRIMARY KEY(uuid));"
             );
         } catch (Exception e) {
@@ -55,6 +57,31 @@ public class Database {
                 e.printStackTrace();
             }
         });
+    }
+
+    public void prepareStatement(PreparedStatement preparedStatement) {
+        ForkJoinPool.commonPool().submit(() -> {
+            try {
+                preparedStatement.executeUpdate();
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public static PreparedStatement prepareStatement(String query, Object... vars) {
+        try {
+            PreparedStatement ps = Main.getPlugin().getConnection().prepareStatement(query);
+            for (int i = 0; i < vars.length; i++) {
+                ps.setObject(i + 1, vars[i]);
+            }
+            return ps;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public Boolean tableExists(String tableName) throws SQLException {

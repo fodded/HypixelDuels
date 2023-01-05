@@ -246,7 +246,7 @@ public class UpdateScoreboardTask extends BukkitRunnable {
                 continue;
             }
 
-            PlayerData playerData = PlayerManager.getPlayerManager(player).getPlayerData();
+            PlayerData playerData = PlayerManager.getPlayerManager(p).getPlayerData();
             String prefix = playerData.getPrefix() != null ? playerData.getPrefix() : "&7";
 
             Team team = scoreboard.getTeam(p.getUniqueId().toString().replace("-", "").substring(0, 16));

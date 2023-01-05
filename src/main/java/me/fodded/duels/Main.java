@@ -7,6 +7,7 @@ import me.fodded.duels.commands.staff.CreateMapCommand;
 import me.fodded.duels.data.ConfigHandler;
 import me.fodded.duels.data.Database;
 import me.fodded.duels.listeners.EntityDamageListener;
+import me.fodded.duels.listeners.PlayerClickListener;
 import me.fodded.duels.listeners.PlayerJoinListener;
 import me.fodded.duels.listeners.WorldBasicListener;
 import me.fodded.duels.manager.LobbyManager;
@@ -48,6 +49,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
         getServer().getPluginManager().registerEvents(new WorldBasicListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerClickListener(), this);
 
         this.keepDayTask = new KeepDayTask(plugin);
         this.keepDayTask.runTaskTimer(this, 0L, 100L);
@@ -77,7 +79,6 @@ public class Main extends JavaPlugin {
         for (String gameName : config.getConfigurationSection("").getKeys(false)) {
             new GameManager(gameName);
         }
-
     }
 
     private void establishConnection() {

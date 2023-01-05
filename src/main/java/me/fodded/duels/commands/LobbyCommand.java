@@ -32,14 +32,14 @@ public class LobbyCommand extends Command {
             Player player = (Player) sender;
 
             PlayerManager playerManager = PlayerManager.getPlayerManager(player);
+            playerManager.teleport(LobbyManager.lobbyLocation);
+            playerManager.resetPlayer();
+
             GameManager gameManager = PlayerManager.currentGames.get(playerManager);
             if(gameManager != null) {
                 gameManager.getPlayers().remove(playerManager);
                 gameManager.leaveGame(playerManager);
             }
-
-            playerManager.resetPlayer();
-            playerManager.teleport(LobbyManager.lobbyLocation);
         }
         return false;
     }

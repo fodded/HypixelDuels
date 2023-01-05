@@ -1,17 +1,32 @@
 package me.fodded.duels.listeners;
 
+import me.fodded.duels.manager.PlayerManager;
+import me.fodded.duels.manager.game.GameManager;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBurnEvent;
-import org.bukkit.event.block.BlockGrowEvent;
-import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 
 public class WorldBasicListener implements Listener {
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        PlayerManager playerManager = PlayerManager.getPlayerManager(event.getPlayer());
+        GameManager gameManager = PlayerManager.currentGames.get(playerManager);
+
+        if(gameManager == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if(!event.getBlock().getType().equals(Material.WOOD)) {
+            event.setCancelled(true);
+        }
+    }
 
     @EventHandler
     public void onBlockIgnite(BlockIgniteEvent event) {

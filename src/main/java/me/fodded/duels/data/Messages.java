@@ -22,7 +22,7 @@ public class Messages {
         switch (directory) {
             case "scoreboard.lobby":
                 return Arrays.asList(
-                        ChatUtil.format("&7" + new SimpleDateFormat("MM/dd/yy").format(System.currentTimeMillis()) + " &7Main"),
+                        ChatUtil.format("&7" + new SimpleDateFormat("MM/dd/yy").format(System.currentTimeMillis()) + " &8Main"),
                         ChatUtil.format(""),
                         ChatUtil.format("&bYou can challenge"),
                         ChatUtil.format("&bother players by"),
@@ -37,7 +37,7 @@ public class Messages {
             case "scoreboard.waiting-lobby":
                 GameGoingTask gameGoingTask = PlayerManager.currentGames.get(playerManager).gameGoingTask;
                 return Arrays.asList(
-                        ChatUtil.format("&7" + new SimpleDateFormat("MM/dd/yy").format(System.currentTimeMillis()) + " &7Main"),
+                        ChatUtil.format("&7" + new SimpleDateFormat("MM/dd/yy").format(System.currentTimeMillis()) + " &8Main"),
                         ChatUtil.format(""),
                         ChatUtil.format("&fMap: &a" + PlayerManager.currentGames.get(playerManager).getName()),
                         ChatUtil.format("&fPlayers: &a" + PlayerManager.currentGames.get(playerManager).getPlayers().size() +  "/2"),
@@ -50,7 +50,7 @@ public class Messages {
                         ChatUtil.format("&erankedsw.xyz"));
             case "scoreboard.ingame":
                 return Arrays.asList(
-                        ChatUtil.format("&7" + new SimpleDateFormat("MM/dd/yy").format(System.currentTimeMillis()) + " &7Main"),
+                        ChatUtil.format("&7" + new SimpleDateFormat("MM/dd/yy").format(System.currentTimeMillis()) + " &8Main"),
                         ChatUtil.format(""),
                         ChatUtil.format("&fTime Left: &a" + getTimeLeft(PlayerManager.currentGames.get(playerManager))),
                         ChatUtil.format(" "),

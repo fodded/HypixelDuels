@@ -3,6 +3,7 @@ package me.fodded.duels.data;
 import lombok.Getter;
 import lombok.Setter;
 import me.fodded.duels.Main;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
@@ -17,6 +18,7 @@ public class PlayerData {
     private String name, displayName, prefix;
     private UUID uuid;
     private Integer wins = 0, losses = 0, streak = 0;
+    private boolean vanish = false, players = false;
 
     public PlayerData(Player player) {
         this.uuid = player.getUniqueId();
@@ -61,6 +63,10 @@ public class PlayerData {
                 }
 
                 if(hasData) {
+                    if(field.getType().equals(boolean.class)) {
+                       field.set(playerData, resultSet.getBoolean(field.getName()));
+                       continue;
+                    }
                     field.set(playerData, resultSet.getObject(field.getName()));
                 }
             }
@@ -94,18 +100,24 @@ public class PlayerData {
         preparedStatement.close();
     }
 
-    public void uploadData(PlayerData playerData) throws IllegalAccessException {
-        String query = "UPDATE duels SET ";
-        for(Field field : getClass().getFields()) {
-            field.setAccessible(true);
-            if(field.getName().equalsIgnoreCase("uuid")) {
-                continue;
-            }
+    public void uploadData(PlayerData playerData) {
+        String query = "UPDATE `duels` SET ";
+        try {
+            for (Field field : getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                if (field.getName().equalsIgnoreCase("uuid")) {
+                    continue;
+                }
 
-            query += field.getName() + "='" + field.get(playerData) + "',";
+                query += field.getName() + "='" + field.get(playerData) + "',";
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
 
-        query = query.substring(0, query.length()-1) + " WHERE uuid='" + playerData.getUuid() + "'";
-        Main.getPlugin().getDatabaseInstance().prepareStatement(query);
+        query = query.substring(0, query.length()-1) + " WHERE `uuid` = ?";
+
+        Database database = Main.getPlugin().getDatabaseInstance();
+        database.prepareStatement(database.prepareStatement(query, playerData.getUuid()));
     }
 }

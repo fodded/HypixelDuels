@@ -4,6 +4,7 @@ import me.fodded.duels.manager.LobbyManager;
 import me.fodded.duels.manager.PlayerManager;
 import me.fodded.duels.manager.game.GameManager;
 import me.fodded.duels.manager.game.GameState;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,8 +36,8 @@ public class EntityDamageListener implements Listener {
 
         event.setDeathMessage(null);
 
-        gameManager.switchToSpectator(playerManager);
         gameManager.killPlayer(playerManager, event.getEntity().getKiller());
+        gameManager.switchToSpectator(playerManager);
         gameManager.switchGameState(GameState.END);
     }
 }

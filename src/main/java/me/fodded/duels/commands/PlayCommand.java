@@ -28,15 +28,8 @@ public class PlayCommand extends Command {
             Player player = (Player) sender;
             PlayerManager playerManager = PlayerManager.getPlayerManager(player);
 
-            GameManager currentGame = PlayerManager.currentGames.get(playerManager);
-            if(currentGame != null) {
-                currentGame.getPlayers().remove(playerManager);
-                currentGame.leaveGame(playerManager);
-            }
-
             GameManager gameManager = GameManager.getRandomGame(playerManager);
             gameManager.joinGame(playerManager);
-
         }
         return false;
     }

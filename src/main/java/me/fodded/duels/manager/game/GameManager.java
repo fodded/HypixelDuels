@@ -14,16 +14,16 @@ import me.fodded.duels.utils.ChatUtil;
 import me.fodded.duels.utils.TitleUtils;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -82,8 +82,8 @@ public class GameManager {
                     public void run() {
                         for(PlayerManager playerManager : getPlayers()) {
                             leaveGame(playerManager);
-                            playerManager.resetPlayer();
                             playerManager.teleport(LobbyManager.lobbyLocation);
+                            playerManager.resetPlayer();
                         }
                         gameMap.unload(true);
                         Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), () -> {
@@ -96,22 +96,58 @@ public class GameManager {
     }
 
     public void giveKit(PlayerManager playerManager) {
-        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.DIAMOND_SWORD));
+        playerManager.getPlayer().getInventory().addItem(getEnchantedItem(new ItemStack(Material.DIAMOND_SWORD), Enchantment.DAMAGE_ALL, 3));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.FISHING_ROD));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.WOOD, 64));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.WATER_BUCKET));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.GOLDEN_APPLE, 6));
+        playerManager.getPlayer().getInventory().addItem(getGoldenHead());
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.LAVA_BUCKET));
+        playerManager.getPlayer().getInventory().addItem(getEnchantedItem(new ItemStack(Material.BOW), Enchantment.ARROW_DAMAGE, 2));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.DIAMOND_AXE));
+
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.WOOD, 64));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.LAVA_BUCKET));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.WATER_BUCKET));
+        playerManager.getPlayer().getInventory().addItem(new ItemStack(Material.ARROW, 16));
+
+        playerManager.getPlayer().getInventory().setItem(39, getEnchantedItem(new ItemStack(Material.DIAMOND_HELMET), Enchantment.PROTECTION_ENVIRONMENTAL, 2));
+        playerManager.getPlayer().getInventory().setItem(38, getEnchantedItem(new ItemStack(Material.DIAMOND_CHESTPLATE), Enchantment.PROTECTION_PROJECTILE, 2));
+        playerManager.getPlayer().getInventory().setItem(37, getEnchantedItem(new ItemStack(Material.DIAMOND_LEGGINGS), Enchantment.PROTECTION_ENVIRONMENTAL, 2));
+        playerManager.getPlayer().getInventory().setItem(36, getEnchantedItem(new ItemStack(Material.DIAMOND_BOOTS), Enchantment.PROTECTION_ENVIRONMENTAL, 2));
+
         playerManager.getPlayer().updateInventory();
+    }
+
+    private ItemStack getGoldenHead() {
+        ItemStack itemStack = new ItemStack(Material.SKULL_ITEM, 3, (short) 3);
+        SkullMeta itemMeta = (SkullMeta) itemStack.getItemMeta();
+        itemMeta.setOwner("_GoldenHead");
+        itemMeta.setDisplayName(ChatUtil.format("&6Golden Head"));
+        itemStack.setItemMeta(itemMeta);
+        return itemStack;
+    }
+
+    private ItemStack getEnchantedItem(ItemStack itemStack, Enchantment enchantment, int level) {
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemMeta.addEnchant(enchantment, level, true);
+        itemStack.setItemMeta(itemMeta);
+        return itemStack;
     }
 
     public void joinGame(PlayerManager playerManager) {
         if(PlayerManager.currentGames.get(playerManager) != null) {
             GameManager gameManager = PlayerManager.currentGames.get(playerManager);
             gameManager.leaveGame(playerManager);
+            gameManager.getPlayers().remove(playerManager);
         }
 
         players.add(playerManager);
         PlayerManager.currentGames.put(playerManager, this);
 
+        playerManager.teleport(spawnPoints.get(players.size()-1));
         playerManager.resetPlayer();
         playerManager.getPlayer().setGameMode(GameMode.SURVIVAL);
-        playerManager.teleport(spawnPoints.get(players.size()-1));
 
         sendMessage(playerManager.getPlayerData().getPrefix() + playerManager.getPlayerData().getDisplayName() + " &ehas joined (&b" + players.size() + "&e/&b2&e)");
 
@@ -120,9 +156,23 @@ public class GameManager {
         }
     }
     public void leaveGame(PlayerManager playerManager) {
+        String message = playerManager.getPlayerData().getPrefix() + playerManager.getPlayerData().getDisplayName() + " &eleft the game";
+        boolean flag = !getGameState().equals(GameState.STARTING) && !getGameState().equals(GameState.QUEUE);
+
+        if(!getGameState().equals(GameState.END)) {
+            sendMessage(!flag ? message + " &e(&b" + getPlayers().size() + "&e/&b2&e)" : message + ".");
+        }
+
         PlayerManager.currentGames.put(playerManager, null);
 
-        if(players.size() == 1 && !getGameState().equals(GameState.END)) {
+        if(players.size() == 1 && getGameState().equals(GameState.STARTING)) {
+            gameGoingTask.cancel();
+            gameGoingTask = null;
+            switchGameState(GameState.QUEUE);
+            return;
+        }
+
+        if(players.size() == 1 && flag && !getGameState().equals(GameState.END)) {
             killPlayer(playerManager, null);
         }
     }
@@ -133,16 +183,29 @@ public class GameManager {
             textToOutput = playerManager.getPlayerData().getPrefix() + playerManager.getPlayerData().getDisplayName() + " &edied.";
         } else {
             PlayerManager killerManager = PlayerManager.getPlayerManager(killer);
-            killerManager.getPlayerData().setWins(killerManager.getPlayerData().getWins()+1);
-            killerManager.getPlayerData().addStreak(1);
-            textToOutput += killerManager.getPlayerData().getDisplayName();
+            textToOutput += killerManager.getPlayerData().getPrefix() + killerManager.getPlayerData().getDisplayName();
         }
 
+        PlayerManager winnerManager = getWinner(playerManager);
+        winnerManager.getPlayerData().setWins(winnerManager.getPlayerData().getWins()+1);
+        winnerManager.getPlayerData().addStreak(1);
+        winnerManager.getPlayerData().uploadData(winnerManager.getPlayerData());
+
         sendMessage(textToOutput);
-        playerManager.getPlayerData().setLosses(playerManager.getPlayerData().getLosses()-1);
+        playerManager.getPlayerData().setLosses(playerManager.getPlayerData().getLosses()+1);
         playerManager.getPlayerData().addStreak(-1);
+        playerManager.getPlayerData().uploadData(playerManager.getPlayerData());
 
         sendTitles(playerManager);
+    }
+
+    private PlayerManager getWinner(PlayerManager playerManager) {
+        for(PlayerManager winner : getPlayers()) {
+            if(winner != playerManager) {
+                return winner;
+            }
+        }
+        return null;
     }
 
     public void sendTitles(PlayerManager loser) {
