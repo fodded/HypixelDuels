@@ -3,7 +3,6 @@ package me.fodded.duels.data;
 import lombok.Getter;
 import lombok.Setter;
 import me.fodded.duels.Main;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;

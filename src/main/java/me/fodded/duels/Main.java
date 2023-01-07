@@ -6,10 +6,7 @@ import me.fodded.duels.commands.PlayCommand;
 import me.fodded.duels.commands.staff.CreateMapCommand;
 import me.fodded.duels.data.ConfigHandler;
 import me.fodded.duels.data.Database;
-import me.fodded.duels.listeners.EntityDamageListener;
-import me.fodded.duels.listeners.PlayerClickListener;
-import me.fodded.duels.listeners.PlayerJoinListener;
-import me.fodded.duels.listeners.WorldBasicListener;
+import me.fodded.duels.listeners.*;
 import me.fodded.duels.manager.LobbyManager;
 import me.fodded.duels.manager.PlayerManager;
 import me.fodded.duels.manager.game.GameManager;
@@ -50,6 +47,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new WorldBasicListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerClickListener(), this);
+        getServer().getPluginManager().registerEvents(new AsyncPlayerChatListener(), this);
 
         this.keepDayTask = new KeepDayTask(plugin);
         this.keepDayTask.runTaskTimer(this, 0L, 100L);

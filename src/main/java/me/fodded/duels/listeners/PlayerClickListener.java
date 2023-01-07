@@ -2,7 +2,6 @@ package me.fodded.duels.listeners;
 
 import me.fodded.duels.manager.PlayerManager;
 import me.fodded.duels.utils.ChatUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
